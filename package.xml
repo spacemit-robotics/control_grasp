@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>grasp</name>
+  <version>1.0.0</version>
+  <description>Generic end-effector control library with driver plugin architecture, supporting grippers, suction cups, etc.</description>
+
+  <maintainer email="robot_team@spacemit.com">robot_team</maintainer>
+  <license>Apache-2.0</license>
+
+  <depend>motor</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

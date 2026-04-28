@@ -1,0 +1,17 @@
+SpacemiT Grasp / End-Effector Component
+Copyright 2026 SpacemiT (Hangzhou) Technology Co. Ltd.
+
+This product includes software developed at
+SpacemiT (Hangzhou) Technology Co. Ltd. (https://www.spacemit.com/).
+
+---------------------------------------------------------------------------
+Third-party Software Notices:
+---------------------------------------------------------------------------
+
+This component optionally links against the following internal libraries
+at build time; their source code is NOT included in this repository:
+
+1. Motor (components/peripherals/motor)
+   Copyright 2026 SpacemiT (Hangzhou) Technology Co. Ltd.
+   Licensed under the Apache License 2.0.
+   Used by the SO-101 gripper driver for Feetech servo communication.
