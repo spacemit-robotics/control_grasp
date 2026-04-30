@@ -761,7 +761,7 @@ static struct grasp_dev *so101_gripper_factory(const char *name, void *args) {
   p->closed_ticks = GRIPPER_CLOSED_TICKS;
 
   /* Allocate motor */
-  p->motor = motor_alloc_uart("feetech", cfg.uart_path, cfg.baud, cfg.id, NULL);  // NOLINT
+  p->motor = motor_alloc_uart("drv_uart_feetech", cfg.uart_path, cfg.baud, cfg.id, NULL);  // NOLINT
   if (!p->motor) {
     fprintf(stderr, "[SO101-Gripper] Failed to alloc gripper motor (ID=%u)\n",
             cfg.id);
