@@ -8,8 +8,8 @@
  * 支持电动夹爪、吸盘等各种末端执行器。
  * 具体驱动通过注册机制挂载。
  */
-#ifndef GRASP_INCLUDE_GRASP_H_
-#define GRASP_INCLUDE_GRASP_H_
+#ifndef GRASP_H
+#define GRASP_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -37,25 +37,25 @@ extern "C" {
 
 /** 抓取指令类型 */
 typedef enum {
-  GRASP_CMD_RELEASE = 0, /* 松开 / 张开 / 停止吸气 */
-  GRASP_CMD_GRAB,        /* 抓紧 / 闭合 / 开启吸气 */
-  GRASP_CMD_RELAX,       /* 放松 / 掉电 (省电或教学) */
+    GRASP_CMD_RELEASE = 0, /* 松开 / 张开 / 停止吸气 */
+    GRASP_CMD_GRAB,        /* 抓紧 / 闭合 / 开启吸气 */
+    GRASP_CMD_RELAX,       /* 放松 / 掉电 (省电或教学) */
 } grasp_cmd_type_t;
 
 /** 抓取器反馈状态 (核心状态机) */
 typedef enum {
-  GRASP_STATE_IDLE = 0, /* 空闲 (已到位或已放松) */
-  GRASP_STATE_MOVING,   /* 正在动作中 */
-  GRASP_STATE_HOLDING,  /* 抓住了 (电流升高 / 气压达标) */
-  GRASP_STATE_EMPTY,    /* 抓空了 (完全闭合无负载) */
-  GRASP_STATE_ERROR,    /* 故障 (过热、断线) */
+    GRASP_STATE_IDLE = 0, /* 空闲 (已到位或已放松) */
+    GRASP_STATE_MOVING,   /* 正在动作中 */
+    GRASP_STATE_HOLDING,  /* 抓住了 (电流升高 / 气压达标) */
+    GRASP_STATE_EMPTY,    /* 抓空了 (完全闭合无负载) */
+    GRASP_STATE_ERROR,    /* 故障 (过热、断线) */
 } grasp_state_t;
 
 /** 抓取参数配置 */
 typedef struct {
-  float max_effort;      /* 归一化力矩/吸力 [0.0 ~ 1.0] */
-  float hold_threshold;  /* 判定 Holding 的电流/气压阈值 */
-  uint32_t timeout_ms;   /* 动作超时 (ms) */
+    float max_effort;      /* 归一化力矩/吸力 [0.0 ~ 1.0] */
+    float hold_threshold;  /* 判定 Holding 的电流/气压阈值 */
+    uint32_t timeout_ms;   /* 动作超时 (ms) */
 } grasp_config_t;
 
 /* ==========================================================================
@@ -146,4 +146,4 @@ int grasp_calibrate(struct grasp_dev *dev);
 }
 #endif
 
-#endif  // GRASP_INCLUDE_GRASP_H_
+#endif  // GRASP_H
