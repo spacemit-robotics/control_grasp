@@ -23,10 +23,18 @@ set(GRASP_SOURCES
 # Driver source files
 set(GRASP_DRIVER_SOURCES "")
 
+set(GRASP_LOCAL_MOTOR_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/motor)
+
+if(EXISTS ${GRASP_LOCAL_MOTOR_DIR}/CMakeLists.txt)
+    set(GRASP_MOTOR_SOURCE_DIR ${GRASP_LOCAL_MOTOR_DIR})
+else()
+    set(GRASP_MOTOR_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../peripherals/motor)
+endif()
+
 # Try to locate motor headers for SO101 gripper driver
 find_path(MOTOR_INCLUDE_DIR motor.h
     HINTS
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../peripherals/motor/include
+        ${GRASP_MOTOR_SOURCE_DIR}/include
         ${MOTOR_INCLUDE_PATH}
 )
 
@@ -38,7 +46,7 @@ if(MOTOR_INCLUDE_DIR)
         set(SROBOTIS_PERIPHERALS_MOTOR_ENABLED_DRIVERS "drv_uart_feetech"
             CACHE STRING "Enabled motor drivers (semicolon-separated). Empty means auto-detect." FORCE)
         set(BUILD_TESTS OFF CACHE BOOL "Build test programs" FORCE)
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../peripherals/motor
+        add_subdirectory(${GRASP_MOTOR_SOURCE_DIR}
                          ${CMAKE_CURRENT_BINARY_DIR}/motor)
     endif()
 else()
@@ -85,7 +93,7 @@ if(MOTOR_INCLUDE_DIR)
         find_library(MOTOR_LIB motor
             HINTS
                 ${CMAKE_INSTALL_PREFIX}/lib
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../peripherals/motor/build
+                ${GRASP_MOTOR_SOURCE_DIR}/build
                 ${MOTOR_LIB_PATH}
         )
         if(MOTOR_LIB)
@@ -132,7 +140,7 @@ if(GRASP_BUILD_HW_TEST)
             set(SROBOTIS_PERIPHERALS_MOTOR_ENABLED_DRIVERS "drv_uart_feetech"
                 CACHE STRING "Enabled motor drivers (semicolon-separated). Empty means auto-detect." FORCE)
             set(BUILD_TESTS OFF CACHE BOOL "Build test programs" FORCE)
-            add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../peripherals/motor
+            add_subdirectory(${GRASP_MOTOR_SOURCE_DIR}
                              ${CMAKE_CURRENT_BINARY_DIR}/motor)
         endif()
 
