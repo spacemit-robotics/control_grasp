@@ -16,6 +16,10 @@ grasp/
 │   └── drivers/
 │       ├── drv_dummy.c                  # Dummy 驱动（测试/占位）
 │       └── drv_uart_so101_gripper.c     # SO-101 夹爪驱动（Feetech 舵机）
+├── third_party/
+│   └── motor/                           # 本地 motor 依赖源码（优先参与构建）
+│       ├── include/                     # motor 公共头文件
+│       └── src/                         # 电机驱动与适配实现
 ├── test/
 │   ├── test_grasp.c                     # 单元测试（dummy 驱动）
 │   ├── test_hw_so101_gripper.c          # 硬件测试程序
@@ -50,7 +54,7 @@ grasp/
 |----------|-----------|--------------------------------|
 | pthreads | 必需      | 系统自带                       |
 | libm     | 必需      | 系统自带                       |
-| motor    | 可选      | `components/peripherals/motor` |
+| motor    | 必需      | `third_party/motor`          |
 
 ### 构建编译
 
