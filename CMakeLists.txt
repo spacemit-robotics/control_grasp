@@ -23,13 +23,7 @@ set(GRASP_SOURCES
 # Driver source files
 set(GRASP_DRIVER_SOURCES "")
 
-set(GRASP_LOCAL_MOTOR_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/motor)
-
-if(EXISTS ${GRASP_LOCAL_MOTOR_DIR}/CMakeLists.txt)
-    set(GRASP_MOTOR_SOURCE_DIR ${GRASP_LOCAL_MOTOR_DIR})
-else()
-    set(GRASP_MOTOR_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../peripherals/motor)
-endif()
+set(GRASP_MOTOR_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../peripherals/motor)
 
 # Try to locate motor headers for SO101 gripper driver
 find_path(MOTOR_INCLUDE_DIR motor.h
