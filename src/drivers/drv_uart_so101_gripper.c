@@ -27,6 +27,9 @@
 #include "sts3215_regs.h"   // NOLINT
 #include "../grasp_core.h"
 
+#define FEETECH_MAX_TICKS 4095.0f
+#define FEETECH_TWO_PI    6.28318530717958647692f
+
 /* --- Register access helpers (wrappers for motor_set/get_paras) --- */
 
 static inline int reg_write_byte(struct motor_dev *dev,
@@ -39,8 +42,8 @@ static inline int reg_write_word(struct motor_dev *dev,
     return motor_set_paras(dev, &reg, &val, 2);
 }
 
-/* 默认夹爪运动速度，Feetech 舵机速度单位 (范围 0-2400) */
-#define SO101_GRIPPER_DEFAULT_VEL 600
+/* 默认夹爪运动速度，使用新版 motor 接口的 rad/s */
+#define SO101_GRIPPER_DEFAULT_VEL_RAD_S 1.0f
 
 /* 校准数据配置文件路径 */
 #define CALIBRATION_FILE "./config/so101_gripper_calibration.json"
@@ -146,7 +149,28 @@ static inline float ticks_to_position_calibrated(struct so101_gripper_priv *p, f
     if (fabsf(range) < 1.0f)
     return 0.5f; /* 避免除零：范围无效时返回中位 */
 
-    return (ticks - closed) / range;
+    float position = (ticks - closed) / range;
+    if (position < 0.0f)
+    position = 0.0f;
+    if (position > 1.0f)
+    position = 1.0f;
+    return position;
+}
+
+static inline float feetech_ticks_to_rad(float ticks) {
+    return (ticks / FEETECH_MAX_TICKS) * FEETECH_TWO_PI;
+}
+
+static inline float feetech_rad_to_ticks(float rad) {
+    return (rad / FEETECH_TWO_PI) * FEETECH_MAX_TICKS;
+}
+
+static inline float position_to_motor_rad(struct so101_gripper_priv *p, float position) {
+    return feetech_ticks_to_rad(position_to_ticks_calibrated(p, position));
+}
+
+static inline float motor_rad_to_position(struct so101_gripper_priv *p, float rad) {
+    return ticks_to_position_calibrated(p, feetech_rad_to_ticks(rad));
 }
 
 /* ==========================================================================
@@ -246,14 +270,14 @@ static int so101_gripper_execute(struct grasp_dev *dev, grasp_cmd_type_t type,
 
     struct motor_cmd cmd;
     memset(&cmd, 0, sizeof(cmd));
-    cmd.vel_des = (float)SO101_GRIPPER_DEFAULT_VEL;
+    cmd.vel_des = SO101_GRIPPER_DEFAULT_VEL_RAD_S;
 
     pthread_mutex_lock(&dev->state_lock);
 
     switch (type) {
     case GRASP_CMD_RELEASE:
     cmd.mode = MOTOR_MODE_POS;
-    cmd.pos_des = position_to_ticks_calibrated(p, 1.0f); /* fully open */
+    cmd.pos_des = position_to_motor_rad(p, 1.0f); /* fully open */
     dev->state = GRASP_STATE_MOVING;
     /* 保存目标命令和目标位置，用于 tick() 持续发送和状态判断 */  // NOLINT
     p->has_target = true;
@@ -264,7 +288,7 @@ static int so101_gripper_execute(struct grasp_dev *dev, grasp_cmd_type_t type,
     break;
     case GRASP_CMD_GRAB:
     cmd.mode = MOTOR_MODE_POS;
-    cmd.pos_des = position_to_ticks_calibrated(p, 0.0f); /* fully closed */
+    cmd.pos_des = position_to_motor_rad(p, 0.0f); /* fully closed */
     dev->state = GRASP_STATE_MOVING;
     /* 保存目标命令和目标位置，用于 tick() 持续发送和状态判断 */  // NOLINT
     p->has_target = true;
@@ -275,7 +299,7 @@ static int so101_gripper_execute(struct grasp_dev *dev, grasp_cmd_type_t type,
     break;
     case GRASP_CMD_RELAX:
     /* 直接关闭扭矩，不走 motor_set_cmds
-     * (MOTOR_MODE_IDLE 在 Feetech 驱动中会发送 position=0) */
+        * 避免影响当前位置 */
     reg_write_byte(p->motor, REG_TORQUE_ENABLE, 0);
     dev->state = GRASP_STATE_IDLE;
     p->has_target = false;
@@ -310,8 +334,8 @@ static int so101_gripper_set_position(struct grasp_dev *dev, float position) {
     struct motor_cmd cmd;
     memset(&cmd, 0, sizeof(cmd));
     cmd.mode = MOTOR_MODE_POS;
-    cmd.pos_des = position_to_ticks_calibrated(p, position);
-    cmd.vel_des = (float)SO101_GRIPPER_DEFAULT_VEL;
+    cmd.pos_des = position_to_motor_rad(p, position);
+    cmd.vel_des = SO101_GRIPPER_DEFAULT_VEL_RAD_S;
 
     pthread_mutex_lock(&dev->state_lock);
     dev->state = GRASP_STATE_MOVING;
@@ -362,7 +386,7 @@ static int so101_gripper_get_feedback(struct grasp_dev *dev, float *out_pos,
     return GRASP_ERR_CONNECT;
 
     pthread_mutex_lock(&dev->state_lock);
-    dev->cur_position = ticks_to_position_calibrated(p, ms.pos);
+    dev->cur_position = motor_rad_to_position(p, ms.pos);
     dev->cur_load = ms.trq;
 
     if (out_pos)
@@ -636,7 +660,7 @@ static int so101_gripper_calibrate(struct grasp_dev *dev) {
     fprintf(stderr, "\n错误: 无法读取舵机位置\n");
     return GRASP_ERR_CONNECT;
     }
-    p->open_ticks = ms.pos;
+    p->open_ticks = feetech_rad_to_ticks(ms.pos);
     printf("        已记录打开位置: %.1f ticks\n", p->open_ticks);
 
     /* 步骤 3: 测量完全闭合位置 */
@@ -650,23 +674,17 @@ static int so101_gripper_calibrate(struct grasp_dev *dev) {
     fprintf(stderr, "\n错误: 无法读取舵机位置\n");
     return GRASP_ERR_CONNECT;
     }
-    p->closed_ticks = ms.pos;
+    p->closed_ticks = feetech_rad_to_ticks(ms.pos);
     printf("        已记录闭合位置: %.1f ticks\n", p->closed_ticks);
 
     /* 步骤 4: 验证范围 */
     printf("\n步骤 4: 验证校准结果...\n");
-    float range = p->open_ticks - p->closed_ticks;
+        float range = p->open_ticks - p->closed_ticks;
+        float abs_range = fabsf(range);
 
-    if (range < 100.0f) {
-    fprintf(stderr, "错误: 校准范围过小 (%.1f ticks)\n", range);
+        if (abs_range < 100.0f) {
+        fprintf(stderr, "错误: 校准范围过小 (%.1f ticks)\n", abs_range);
     fprintf(stderr, "      请确保打开和闭合位置有明显差异\n");
-    p->calibrated = false;
-    return GRASP_ERR_CONFIG;
-    }
-
-    if (p->open_ticks <= p->closed_ticks) {
-    fprintf(stderr, "错误: 打开位置 (%.1f) 应该大于闭合位置 (%.1f)\n",  // NOLINT
-            p->open_ticks, p->closed_ticks);
     p->calibrated = false;
     return GRASP_ERR_CONFIG;
     }
@@ -676,7 +694,9 @@ static int so101_gripper_calibrate(struct grasp_dev *dev) {
     printf("\n========== 校准成功！ ==========\n");
     printf("闭合位置: %.1f ticks (position 0.0)\n", p->closed_ticks);
     printf("打开位置: %.1f ticks (position 1.0)\n", p->open_ticks);
-    printf("有效范围: %.1f ticks\n", range);
+        printf("有效范围: %.1f ticks\n", abs_range);
+        printf("方向: %s\n", (p->open_ticks >= p->closed_ticks) ?
+            "open > closed" : "open < closed");
     printf("================================\n\n");
 
     /* 保存校准数据到配置文件 */
@@ -779,8 +799,8 @@ static struct grasp_dev *so101_gripper_factory(const char *name, void *args) {
     /* 尝试加载校准数据 */
     if (load_calibration(cfg.id, &p->open_ticks, &p->closed_ticks) == 0) {
     /* 验证加载的数据有效性 */
-    float range = p->open_ticks - p->closed_ticks;
-    if (range > 100.0f && p->open_ticks > p->closed_ticks) {
+    float range = fabsf(p->open_ticks - p->closed_ticks);
+    if (range > 100.0f) {
         p->calibrated = true;
         printf("[SO101-Gripper] 使用已保存的校准数据 (range=%.1f ticks)\n", range);  // NOLINT
     } else {
