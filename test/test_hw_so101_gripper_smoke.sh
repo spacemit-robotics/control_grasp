@@ -26,7 +26,7 @@ mkdir -p "$log_dir" "$build_dir"
     test -f "$motor_include_dir/motor.h"
 
     cmake -S "$module_root" -B "$build_dir" \
-        -DMOTOR_INCLUDE_PATH="$motor_include_dir" \
+        -DMOTOR_INCLUDE_DIR="$motor_include_dir" \
         -DGRASP_BUILD_TESTS=OFF \
         -DGRASP_BUILD_HW_TEST=ON
 
