@@ -111,7 +111,11 @@ install(TARGETS grasp
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
 )
-install(FILES include/grasp.h DESTINATION include)
+install(FILES
+    include/grasp.h
+    include/so101_gripper.h
+    DESTINATION include
+)
 
 # Tests
 option(GRASP_BUILD_TESTS "Build grasp test programs" ON)

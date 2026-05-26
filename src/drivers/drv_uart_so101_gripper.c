@@ -23,6 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "so101_gripper.h"
 #include "motor.h"          // NOLINT
 #include "sts3215_regs.h"   // NOLINT
 #include "../grasp_core.h"
