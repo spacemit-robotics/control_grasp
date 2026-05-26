@@ -7,7 +7,6 @@ artifact_dir="${SROBOTIS_TEST_ARTIFACT_DIR:-${SROBOTIS_OUTPUT_ROOT:-$PWD/output}
 log_dir="$artifact_dir/logs"
 log_file="$log_dir/grasp_dummy_performance.log"
 build_dir="$artifact_dir/build"
-bench_src="$script_dir/benchmark_dummy_grasp.c"
 bench_bin="$build_dir/benchmark_dummy_grasp"
 max_avg_us="${GRASP_DUMMY_MAX_AVG_US:-200}"
 iters="${GRASP_DUMMY_ITERS:-20000}"
