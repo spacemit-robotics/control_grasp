@@ -116,6 +116,7 @@ install(FILES include/grasp.h DESTINATION include)
 # Tests
 option(GRASP_BUILD_TESTS "Build grasp test programs" ON)
 option(GRASP_BUILD_HW_TEST "Build grasp hardware test programs" OFF)
+option(GRASP_BUILD_BENCHMARKS "Build grasp benchmark programs" ON)
 
 if(GRASP_BUILD_TESTS)
     enable_testing()
@@ -125,6 +126,11 @@ if(GRASP_BUILD_TESTS)
     target_link_libraries(test_grasp PRIVATE grasp Threads::Threads)
     set_target_properties(test_grasp PROPERTIES LINKER_LANGUAGE CXX)
     add_test(NAME grasp_test COMMAND test_grasp)
+endif()
+
+if(GRASP_BUILD_BENCHMARKS)
+    add_executable(benchmark_dummy_grasp test/benchmark_dummy_grasp.c)
+    target_link_libraries(benchmark_dummy_grasp PRIVATE grasp Threads::Threads m)
 endif()
 
 if(GRASP_BUILD_HW_TEST)

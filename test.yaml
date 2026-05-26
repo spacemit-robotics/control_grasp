@@ -1,0 +1,51 @@
+## Copyright (C) 2026 SpacemiT (Hangzhou) Technology Co. Ltd.
+## SPDX-License-Identifier: Apache-2.0
+
+module: components/control/grasp
+
+tests:
+  - name: grasp-dummy-functional
+    description: >-
+      Builds the grasp component with the dummy driver, runs the unit test
+      binary, and checks the expected PASS banner.
+    category: functional
+    scopes: [pr]
+    timeout_s: 600
+    workdir: sdk
+    artifacts:
+      - output/test/pr/components__control__grasp/modules/components__control__grasp/logs/grasp_dummy_functional.log
+    command: |
+      bash components/control/grasp/test/test_dummy_functional.sh
+
+  - name: grasp-dummy-performance
+    description: >-
+      Measures dummy grasp command and tick latency, then fails if the average
+      exceeds GRASP_DUMMY_MAX_AVG_US.
+    category: performance
+    scopes: [scheduled, release]
+    timeout_s: 900
+    workdir: sdk
+    artifacts:
+      - output/test/scheduled/components__control__grasp/modules/components__control__grasp/logs/grasp_dummy_performance.log
+      - output/test/release/components__control__grasp/modules/components__control__grasp/logs/grasp_dummy_performance.log
+    command: |
+      bash components/control/grasp/test/test_dummy_performance.sh
+
+  - name: grasp-so101-hardware-smoke
+    description: >-
+      Manually verifies the SO-101 gripper hardware test binary can open the
+      device and present the interactive menu; requires powered hardware and
+      supervision.
+    category: functional
+    scopes: [manual]
+    timeout_s: 900
+    workdir: sdk
+    requires:
+      hardware:
+        - >-
+          SO101 gripper on /dev/ttyACM* or /dev/ttyUSB*
+      supervision: true
+    artifacts:
+      - output/test/manual/components__control__grasp/modules/components__control__grasp/logs/grasp_so101_hardware_smoke.log
+    command: |
+      bash components/control/grasp/test/test_hw_so101_gripper_smoke.sh
