@@ -58,6 +58,19 @@ typedef struct {
     uint32_t timeout_ms;   /* 动作超时 (ms) */
 } grasp_config_t;
 
+/**
+ * @brief SO-101 夹爪配置参数
+ *
+ * 通过 grasp_alloc("so101_gripper", &cfg) 的 args 参数传入。
+ * 如果 args 为 NULL，驱动会使用默认值。
+ */
+struct so101_gripper_config {
+    const char *uart_path;
+    uint32_t baud;
+    uint8_t id;
+    grasp_config_t grasp_cfg;
+};
+
 /* ==========================================================================
  * 3. Opaque Handle
  * ========================================================================== */
