@@ -43,14 +43,6 @@ static void force_link_drivers(void) {
 #define DEFAULT_BAUD      1000000
 #define DEFAULT_ID        6
 
-/* 外部配置结构（需要与驱动匹配） */
-struct so101_gripper_config {
-    const char *uart_path;
-    uint32_t baud;
-    uint8_t id;
-    grasp_config_t grasp_cfg;
-};
-
 static void print_menu(void) {
     printf("\n========== SO-101 夹爪硬件测试 ==========\n");
     printf("1. 完全打开 (position = 1.0)\n");

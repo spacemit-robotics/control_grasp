@@ -52,28 +52,6 @@ static inline int reg_write_word(struct motor_dev *dev,
  * Configuration (passed via grasp_alloc args)
  * ========================================================================== */  // NOLINT
 
-/**
- * @brief SO-101 夹爪配置参数
- *
- * 通过 grasp_alloc 的 args 参数传入。
- * 如果 args 为 NULL，使用默认值 (ttyACM0, 1Mbaud, ID=6)。
- *
- * 用法:
- *   struct so101_gripper_config cfg = {
- *       .uart_path = "/dev/ttyACM0",  // 串口设备路径
- *       .baud = 1000000,              // 波特率
- *       .id = 6,                       // 夹爪舵机 ID
- *       .grasp_cfg = { .max_effort = 0.8, .hold_threshold = 100, .timeout_ms = 3000 },  // NOLINT
- *   };
- *   struct grasp_dev *gripper = grasp_alloc("so101_gripper", &cfg);
- */
-struct so101_gripper_config {
-    const char *uart_path;        /* 串口设备路径，如 "/dev/ttyACM0" */
-    uint32_t baud;                /* 波特率，如 1000000 */
-    uint8_t id;                   /* 夹爪舵机 ID，默认 6 */
-    grasp_config_t grasp_cfg;     /* 抓取参数 (力度阈值、超时等)，可选覆盖 */  // NOLINT
-};
-
 /* ==========================================================================
  * Private Data
  * ========================================================================== */  // NOLINT
