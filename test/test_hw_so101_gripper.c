@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include "grasp.h" // NOLINT
+#include "so101_gripper.h" // NOLINT
 
 /* 强制链接驱动 - 引用外部符号确保驱动代码被链接 */
 extern void *__drv_info_so101_gripper_factory __attribute__((weak));
