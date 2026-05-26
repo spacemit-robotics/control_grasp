@@ -10,6 +10,7 @@ log_dir="$artifact_dir/logs"
 log_file="$log_dir/grasp_so101_hardware_smoke.log"
 build_dir="$artifact_dir/build"
 port="${GRASP_SO101_PORT:-/dev/ttyACM0}"
+timeout_s="${GRASP_SO101_SMOKE_TIMEOUT_S:-15}"
 
 mkdir -p "$log_dir" "$build_dir"
 
@@ -17,6 +18,7 @@ mkdir -p "$log_dir" "$build_dir"
     echo "[info] module_root=$module_root"
     echo "[info] build_dir=$build_dir"
     echo "[info] port=$port"
+    echo "[info] timeout_s=$timeout_s"
 
     test -e "$port"
 
@@ -26,7 +28,9 @@ mkdir -p "$log_dir" "$build_dir"
 
     cmake --build "$build_dir" -j"$(nproc)"
 
-    printf '0\n' | "$build_dir/test_hw_so101_gripper" --port "$port"
+    # The hardware test is menu-driven today. Send the explicit exit option and
+    # bound runtime so CI/manual automation cannot hang indefinitely.
+    printf '0\n' | timeout "$timeout_s" "$build_dir/test_hw_so101_gripper" --port "$port"
 } | tee "$log_file"
 
 grep -q "SO-101 夹爪硬件测试" "$log_file"
